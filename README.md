@@ -1,3 +1,39 @@
+> 以下「中文导读」为学习用补充说明，由学习者撰写，置于原文之前；下方原有内容一字未改。
+
+# 📘 中文导读 · MC-Blur 数据集工具
+
+## 一句话定位
+MC-Blur 是一个**大规模的「多成因图像去模糊（image deblurring）」基准数据集**；本仓库只是一个**数据下载/处理工具**：
+用 `gdown` 从 Google Drive 按文件 ID 拉取 MC-Blur 各子集的 zip，再解压到本地，帮你快速拿到完整数据。
+
+## 核心逻辑 / 怎么用
+它不是训练脚本，也不生成数据。核心流程（见 `download_data.py` 注释）：
+> gdown 按文件 ID 从 Google Drive 下载 zip → `shutil.unpack_archive` 解压到 `Datasets/` → `os.remove` 删除压缩包。
+
+下载全部子集（默认）：
+```bash
+python download_data.py
+```
+只下载某一子集（`--data` 传子集名，如 README 示例）：
+```bash
+python download_data.py --data "UHDM_train_test"
+```
+可选的子集名在 `download_data.py` 中定义：`RHM_250_Test`、`RHM_500_Test`、`RHM_1000_Test`、`RHM_250_500_1000_train_test`、`UHDM_train_test`、`LSD_train_test`、`RMBQ`。
+依赖：`python -m pip install gdown`；需要能访问 Google Drive（国内可能需代理）。
+
+## 目录结构导读
+- `download_data.py` —— 唯一的脚本：按 `args.data` 逐个下载→解压→删除 zip，末尾打印完成提示。
+- `README.md` —— 数据集全貌：四种模糊（均匀模糊、连续帧平均运动模糊、重度散焦、真实世界模糊）；四类子集 RHM / UHDM / LSD / RMBQ；百度网盘直链与密码；以及各子集上的基准方法 PSNR/SSIM 对比表。
+- `core_step_instruction/` —— 数据集人工合成步骤的说明（README）。
+- `instruction/` —— 每个子集的视觉示例（README）。
+- `examples/`、`imgs/` —— 示例图与示意图。
+
+## 学习建议 / 易踩坑（依据注释与断点，如实记录）
+- **`--data` 的 `type=list` 是个陷阱（代码注释已标注“理解存疑”）**：argparse 会用 `list()` 把传入字符串拆成字符列表，导致后续 `if data == ...` 无一匹配，可能下载落空；用默认全量下载最稳，逐个下载请手动核对子集名拼写。
+- **`RHM_250_500_1000_train_test` 的文件 ID 末尾多了一个空格**（原始代码如此，为保持行为不变保留原样），可能影响 gdown 对该 ID 的匹配/下载。
+- **`RMBQ` 分支疑似官方笔误**：它打印 “RMBQ Data!” 但下载用的是 `LSD_train_test` 的 ID（代码注释标注“大概率是 bug，但按规范不改动逻辑”）。如需 RMBQ 请注意甄别。
+- 数据量很大（单个子集几 GB 到数百 GB），注意磁盘空间；百度网盘是替代通道。
+
 # MC-Blur: A Comprehensive Benchmark for Image Deblurring
 
 
